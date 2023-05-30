@@ -4,6 +4,10 @@ from pygame.locals import *
 # Initialize Pygame
 pygame.init()
 
+#functions
+def generateLaneX(number_of_lane):
+    pass
+
 #constants
 screen_width = 800
 screen_height = 600
@@ -27,6 +31,19 @@ texture_image.set_alpha(50)
 background = pygame.Surface(screen.get_size()).convert()
 background.blit(texture_image, (0, 0))
 
+#Player
+player_height = 100
+player_image = pygame.image.load("./assets/red-car.png")
+desired_height_player = 100
+aspect_ratio_player = player_image.get_width() / player_image.get_height()
+desired_width_player = int(desired_height_player * aspect_ratio_player)
+player_image = pygame.transform.scale(player_image, (desired_width_player, desired_height_player))
+
+#Lanes
+lane_width = 100
+lane_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+lanes = []
+
 # Game loop
 clock = pygame.time.Clock()
 running = True
@@ -42,6 +59,7 @@ while running:
     # Drawing on the screen
     screen.fill(WHITE)
     screen.blit(background, (0, 0))
+    screen.blit(player_image, (screen_width // 2 - lane_width // 2, screen_height // 2 - lane_width // 2))
 
     # Update the screen
     pygame.display.flip()
