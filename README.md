@@ -1,5 +1,5 @@
 # Lanes
-A fun game where you have to avoid 
+A fun game where you have to avoid obstacles which spawn on a highway with many different road lanes!
 
 ## Game Mechanics
 - The player controls the car using the left and right arrow keys.
