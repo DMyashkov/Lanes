@@ -15,13 +15,21 @@ WHITE = pygame.Color(white_hex)
 number_of_lanes = 10
 lane_width = 100
 starting_lane = number_of_lanes // 2
-horizontal_speed = 6
-min_spawn_interval = 1000 
-max_spawn_interval = 1001
-min_spawn_quantity = 1
-max_spawn_quantity = 1
+
+min_spawn_interval = 100 
+max_spawn_interval = 400
+min_spawn_quantity = 2
+max_spawn_quantity = 7
+
 obstacle_size = 50
-speed = 5
+
+hitbox_offset = 20
+
+horizontal_speed_const = 6
+speed_const = 7
+
+horizontal_speed = horizontal_speed_const
+speed = speed_const
 
 #functions
 def generateLaneX(number_of_lane):
@@ -52,19 +60,19 @@ class Obstacle:
         self.x = x
         self.y = y
         self.size = size
-        self.rect = self.image.get_rect()
-        #Change size of rect to size
-        #self.rect.width = size
-        #self.rect.height = size
-        #self.rect_color = pygame.Color(255, 0, 0)
+
+        self.rect = Rect(self.x, self.y, size, size)
+        self.rect.center = (self.x + size // 2, self.y + size // 2)
+        self.rect_color = pygame.Color(255, 0, 0)
     
     def update(self, speed):
         self.y += speed
-        #self.rect.topleft = (self.x, self.y)
+        self.rect.center = (self.x + self.size // 2, self.y + self.size // 2)   
 
     def render(self, screen):
         self.image = pygame.transform.scale(self.image, (self.size, self.size))
         screen.blit(self.image, (self.x,self.y))
+        #pygame.draw.rect(screen, self.rect_color, self.rect)
 
 class Player:
     def __init__(self, image_path, desired_height):
@@ -77,13 +85,14 @@ class Player:
         self.y = screen_height // 2 - lane_width // 2
 
         #create rect as hitbox
-        self.rect = Rect(self.x, self.y, self.desired_width, self.desired_height)
+        self.rect = Rect(self.x, self.y, self.desired_width - hitbox_offset, self.desired_height - hitbox_offset)
+        self.rect.center = (self.x + self.desired_width // 2, self.y + self.desired_height // 2)
         self.rect_color = pygame.Color(0, 255, 0)
 
     def render(self, screen, rotation):
         screen.blit(pygame.transform.rotate(self.image, rotation), (self.x, self.y))
-        rotated_rect_image = pygame.transform.rotate(pygame.Surface(()), rotation)
-        pygame.draw.rect(screen, self.rect_color, self.rect)
+        self.rect.center = (self.x + self.desired_width // 2, self.y + self.desired_height // 2)
+        #pygame.draw.rect(screen, self.rect_color, self.rect)
         
 
 
@@ -190,6 +199,10 @@ while running:
         if obstacle.y > screen_height:
             obstacles.remove(obstacle)
         obstacle.update(speed)
+        # if obstacle.rect.colliderect(player.rect):
+        #     collision_detected = True
+        #     print("Collision detected")
+        #     break
 
     # Drawing on the screen
     screen.fill(WHITE)
@@ -201,10 +214,18 @@ while running:
     screen.blit(background, (0, 0))
     player.render(screen, player_rotation)
     pygame.draw.rect(test_surface, player.rect_color, player.rect, 5)
-    #for obstacle in obstacles:
-        #pygame.draw.rect(test_surface, obstacle.rect_color, obstacle.rect, 5)
     test_surface.set_alpha(30)
     gameSurface.blit(test_surface, (0, 0))
+
+    if collision_detected:
+        speed = 0
+        horizontal_speed = 0
+        if keys[pygame.K_SPACE]:
+            speed = speed_const
+            horizontal_speed = horizontal_speed_const
+            collision_detected = False
+            obstacles.clear()
+            laneSurfaceX = lane_width // 2
 
     # Update the screen
     pygame.display.flip()
