@@ -23,3 +23,5 @@ A fun game where you have to avoid obstacles which spawn on a highway with many 
 ## Warnings
 - Collision detection is turned off due to a known bug 
 - The bug is connected to the fact that the player's hitbox is relative to the screen and the obstacle's hitbox is relative to the game environment
+
+### Github repo - https://github.com/DMyashkov/Lanes
