@@ -17,8 +17,8 @@ lane_width = 100
 starting_lane = number_of_lanes // 2
 
 min_spawn_interval = 100 
-max_spawn_interval = 400
-min_spawn_quantity = 2
+max_spawn_interval = 300
+min_spawn_quantity = 3
 max_spawn_quantity = 7
 
 obstacle_size = 50
@@ -26,7 +26,7 @@ obstacle_size = 50
 hitbox_offset = 20
 
 horizontal_speed_const = 6
-speed_const = 7
+speed_const = 9
 
 horizontal_speed = horizontal_speed_const
 speed = speed_const
