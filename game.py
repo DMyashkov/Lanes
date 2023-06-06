@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import random
+from moviepy.editor import *
 
 # Initialize Pygame
 pygame.init()
@@ -88,9 +89,11 @@ class Player:
         self.rect.center = (self.x + self.desired_width // 2, self.y + self.desired_height // 2)
         self.rect_color = pygame.Color(0, 255, 0)
 
-    def render(self, screen, rotation):
+    def render(self, screen, surface, rotation):
         screen.blit(pygame.transform.rotate(self.image, rotation), (self.x, self.y))
-        self.rect.center = (self.x + self.desired_width // 2, self.y + self.desired_height // 2)
+        self.rect.center = (self.x + self.desired_width // 2 - lane_surface_x, self.y + self.desired_height // 2)
+        # Draw rect onto surface
+        pygame.draw.rect(surface, self.rect_color, self.rect)
 
 
 # Set up the display
@@ -194,10 +197,10 @@ while running:
         if obstacle.y > SCREEN_HEIGHT:
             obstacles.remove(obstacle)
         obstacle.update(SPEED)
-        # if obstacle.rect.colliderect(player.rect):
-        #     collision_detected = True
-        #     print("Collision detected")
-        #     break
+        if obstacle.rect.colliderect(player.rect):
+            collision_detected = True
+            print("Collision detected")
+            break
 
     # Drawing on the screen
     screen.fill(WHITE)
@@ -207,7 +210,7 @@ while running:
         obstacle.render(game_surface)
     screen.blit(game_surface, (lane_surface_x, 0))
     screen.blit(background, (0, 0))
-    player.render(screen, player_rotation)
+    player.render(screen, game_surface, player_rotation)
     pygame.draw.rect(test_surface, player.rect_color, player.rect, 5)
     test_surface.set_alpha(30)
     game_surface.blit(test_surface, (0, 0))
@@ -215,6 +218,13 @@ while running:
     if collision_detected:
         SPEED = 0
         HORIZONTAL_SPEED = 0
+        boom_gif = pygame.image.load("./assets/explode-boom.gif")
+        gif_rect = boom_gif.get_rect()
+        center_x = (SCREEN_WIDTH - gif_rect.width) // 2
+        center_y = (SCREEN_HEIGHT - gif_rect.height) // 2
+        gif_rect.x = center_x
+        gif_rect.y = center_y
+        screen.blit(boom_gif, gif_rect)
         if keys[pygame.K_SPACE]:
             SPEED = SPEED_CONST
             HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST
