@@ -66,6 +66,21 @@ def display_end_screen(score, surface):
 
     #surface.set_alpha(40)
     surface.blit(end_screen_text, end_screen_text_rect)
+#difficulty - 1 - 10
+# def update_game_variables(difficulty):
+    # MIN_SPAWN_INTERVAL = 400 * (-difficulty/10)
+    # SPAWN_INTERVAL_DIFF = 300
+    # MAX_SPAWN_INTERVAL = MIN_SPAWN_INTERVAL + SPAWN_INTERVAL_DIFF
+    # MIN_SPAWN_QUANTITY = difficulty
+    # if MIN_SPAWN_QUANTITY < 1:
+    #     MIN_SPAWN_QUANTITY = 1
+    # MAX_SPAWN_QUANTITY = MIN_SPAWN_QUANTITY + 2
+    # if MAX_SPAWN_QUANTITY > 10:
+    #     MAX_SPAWN_QUANTITY = 10
+    # HORIZONTAL_SPEED_CONST = 14 * difficulty/50
+    # SPEED_CONST = 15 * difficulty/50
+
+
 
 #Gifs and images
 gif_path = './assets/explode-boom.gif'
@@ -237,6 +252,7 @@ spawn_timer = 0
 collision_detected = False
 boost_mode = 0
 pause = False
+difficulty = 0.1
 
 while running:
     # Event handling
@@ -295,8 +311,8 @@ while running:
                 break
 
     # Managing score
-    score += SPEED / 10 * score_multiplier\
-    
+    score += SPEED / 10 * score_multiplier
+    difficulty = score / 50
     # Update progress value bar
     if pause == False:
         if boost_mode == 0:
@@ -330,6 +346,7 @@ while running:
     display_score(int(score), screen)
     if boost_mode:
         screen.blit(tint_surface, (0, 0))
+    #update_game_variables(difficulty)
 
     if collision_detected:
         SPEED = 0
