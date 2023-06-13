@@ -58,6 +58,15 @@ def display_score(score, surface):
 
     surface.blit(score_text, (10, 10))  # Position the text on the top-left corner (adjust coordinates as needed)
 
+def display_end_screen(score, surface):
+    text = """GAME OVER!!! SCORE: """ + str(score)
+    end_screen_text = font.render(text, True, colors[1])
+    end_screen_text_rect = end_screen_text.get_rect()
+    end_screen_text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 110)
+
+    #surface.set_alpha(40)
+    surface.blit(end_screen_text, end_screen_text_rect)
+
 #Gifs and images
 gif_path = './assets/explode-boom.gif'
 gif_image = Image.open(gif_path)
@@ -89,8 +98,13 @@ game_surface = pygame.Surface((lane_surface_width, lane_surface_height))
 test_surface = pygame.Surface((lane_surface_width, lane_surface_height))
 gif_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-ui_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+tint_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+tint_surface.fill((0, 0, 255))
+tint_surface.set_alpha(30)
 
+end_screen_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+end_screen_surface.fill((0, 0, 0))
+end_screen_surface.set_alpha(50)
 # Classes
 class Lane:
     def __init__(self, number_of_lane, color, x):
@@ -194,6 +208,20 @@ for lane in lanes:
 
 lane_surface_x = LANE_WIDTH // 2
 
+# Boost bar
+BAR_WIDTH = 400
+BAR_HEIGHT = 20
+BAR_COLOR = (0, 0, 0)  # Green color for the filled portion of the bar
+BAR_BACKGROUND_COLOR = (200, 200, 200)  # Background color for the bar
+BAR_PADDING = 10  # Padding from the screen edges
+
+progress = 0.0  # Progress value between 0.0 and 1.0 representing the filled portion of the bar
+
+bar_x = SCREEN_WIDTH - BAR_PADDING - BAR_WIDTH
+bar_y = BAR_PADDING
+bar_width = BAR_WIDTH
+bar_height = BAR_HEIGHT
+
 # Obstacles
 obstacles = []
 
@@ -207,6 +235,8 @@ clock = pygame.time.Clock()
 running = True
 spawn_timer = 0
 collision_detected = False
+boost_mode = 0
+pause = False
 
 while running:
     # Event handling
@@ -238,18 +268,49 @@ while running:
         spawn_interval = random.randint(MIN_SPAWN_INTERVAL, MAX_SPAWN_INTERVAL)
         spawn_quantity = random.randint(1, MAX_SPAWN_QUANTITY)
 
+    #Managing boost
+    if pause == False:
+        if keys[pygame.K_SPACE] and progress > 0.9:
+            boost_mode = 1
+
+        if boost_mode == 1 and pause == False and progress > 0.0:
+            SPEED = SPEED_CONST * 2
+            HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST * 2
+        elif pause == False:
+            boost_mode = 0
+            SPEED = SPEED_CONST
+            HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST
+
     # Update obstacles
     for obstacle in obstacles:
         if obstacle.y > SCREEN_HEIGHT:
             obstacles.remove(obstacle)
         obstacle.update(SPEED)
         if obstacle.rect.colliderect(player.rect):
-            collision_detected = True
-            print("Collision detected")
-            break
-    
+            if boost_mode == 1:
+                obstacles.remove(obstacle)
+            else:
+                collision_detected = True
+                #print("Collision detected")
+                break
+
     # Managing score
-    score += SPEED / 10 * score_multiplier
+    score += SPEED / 10 * score_multiplier\
+    
+    # Update progress value bar
+    if pause == False:
+        if boost_mode == 0:
+            progress += 0.003
+        else:
+            progress -= 0.015
+        
+        if progress < 0.0:
+            progress = 0.0
+        if progress > 1.0:
+            progress = 1.0
+
+    # Managing boost bar
+    filled_width = int(bar_width * progress)
 
     # Drawing on the screen
     screen.fill(WHITE)
@@ -259,12 +320,16 @@ while running:
     for obstacle in obstacles:
         obstacle.render(game_surface)
     screen.blit(game_surface, (lane_surface_x, 0))
+    pygame.draw.rect(screen, BAR_BACKGROUND_COLOR, (bar_x, bar_y, bar_width, bar_height))
+    pygame.draw.rect(screen, BAR_COLOR, (bar_x, bar_y, filled_width, bar_height))
     screen.blit(background, (0, 0))
     player.render(screen, game_surface, player_rotation)
     pygame.draw.rect(test_surface, player.rect_color, player.rect, 5)
     test_surface.set_alpha(30)
     game_surface.blit(test_surface, (0, 0))
     display_score(int(score), screen)
+    if boost_mode:
+        screen.blit(tint_surface, (0, 0))
 
     if collision_detected:
         SPEED = 0
@@ -276,13 +341,20 @@ while running:
         gif_rect.x = center_x
         gif_rect.y = center_y
         screen.blit(boom_gif, gif_rect)
+        pause = True
         if keys[pygame.K_SPACE]:
+            pause = False
             SPEED = SPEED_CONST
             HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST
             collision_detected = False
             obstacles.clear()
             lane_surface_x = 0
             score = 0
+            progress = 0.0
+    
+    if pause:
+        display_end_screen(int(score), screen)
+        screen.blit(end_screen_surface, (0, 0))
 
     # Update the screen
     pygame.display.flip()
