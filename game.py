@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import random
-from moviepy.editor import *
+from PIL import Image, ImageSequence
 
 # Initialize Pygame
 pygame.init()
@@ -32,9 +32,52 @@ SPEED_CONST = 7
 HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST
 SPEED = SPEED_CONST
 
+score = 0
+score_multiplier = 0.2
+
+# Colors
+colors = [
+    (255, 255, 255),  # White
+    (0, 0, 0),        # Black
+    (255, 0, 0),      # Red
+    (0, 255, 0),      # Green
+    (0, 0, 255),      # Blue
+]
+
+# Fonts
+font_path = "assets/YOUMURDERERBB-PWOK.OTF"
+font = pygame.font.Font(font_path, 50) 
+
 # Functions
 def generate_lane_x(number_of_lane):
     return LANE_WIDTH * number_of_lane
+
+def display_score(score, surface):
+    score_text = font.render("SCORE: " + str(score), True, colors[1])  # White text color
+    rect = score_text.get_rect()
+
+    surface.blit(score_text, (10, 10))  # Position the text on the top-left corner (adjust coordinates as needed)
+
+#Gifs and images
+gif_path = './assets/explode-boom.gif'
+gif_image = Image.open(gif_path)
+
+frames = []
+
+# Extract each frame from the GIF
+for frame in ImageSequence.Iterator(gif_image):
+    # Convert the frame to RGBA mode (if not already)
+    if frame.mode != 'RGBA':
+        frame = frame.convert('RGBA')
+    
+    # Add the frame to the list
+    frames.append(frame)
+
+# Create a new GIF with looping
+output_path = './assets/explode-boom-loop.gif'
+frames[0].save(output_path, save_all=True, append_images=frames[1:], loop=0, duration=gif_image.info['duration'])
+
+print("GIF looping completed.")
 
 # Surfaces
 lane_surface = pygame.Surface((LANE_WIDTH * NUMBER_OF_LANES, SCREEN_HEIGHT))
@@ -44,6 +87,9 @@ lane_surface_height = lane_surface.get_height()
 game_surface = pygame.Surface((lane_surface_width, lane_surface_height))
 
 test_surface = pygame.Surface((lane_surface_width, lane_surface_height))
+gif_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+ui_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Classes
 class Lane:
@@ -201,11 +247,15 @@ while running:
             collision_detected = True
             print("Collision detected")
             break
+    
+    # Managing score
+    score += SPEED / 10 * score_multiplier
 
     # Drawing on the screen
     screen.fill(WHITE)
     # screen.blit(background, (0, 0))
     game_surface.blit(lane_surface, (0, 0))
+    #ui_surface.blit(text, text_rect)
     for obstacle in obstacles:
         obstacle.render(game_surface)
     screen.blit(game_surface, (lane_surface_x, 0))
@@ -214,6 +264,7 @@ while running:
     pygame.draw.rect(test_surface, player.rect_color, player.rect, 5)
     test_surface.set_alpha(30)
     game_surface.blit(test_surface, (0, 0))
+    display_score(int(score), screen)
 
     if collision_detected:
         SPEED = 0
@@ -230,7 +281,8 @@ while running:
             HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST
             collision_detected = False
             obstacles.clear()
-            lane_surface_x = LANE_WIDTH // 2
+            lane_surface_x = 0
+            score = 0
 
     # Update the screen
     pygame.display.flip()
