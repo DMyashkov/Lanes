@@ -5,10 +5,12 @@ from PIL import Image, ImageSequence
 
 # Initialize Pygame
 pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load("./assets/DRIVE.mp3")
 
 # Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 800
 WHITE_HEX = '#ffffff'
 WHITE = pygame.Color(WHITE_HEX)
 
@@ -17,17 +19,17 @@ NUMBER_OF_LANES = 10
 LANE_WIDTH = 100
 STARTING_LANE = NUMBER_OF_LANES // 2
 
-MIN_SPAWN_INTERVAL = 100
-MAX_SPAWN_INTERVAL = 300
-MIN_SPAWN_QUANTITY = 3
+MIN_SPAWN_INTERVAL = 200
+MAX_SPAWN_INTERVAL = 500
+MIN_SPAWN_QUANTITY = 4
 MAX_SPAWN_QUANTITY = 7
 
-OBSTACLE_SIZE = 50
+OBSTACLE_SIZE = 65
 
 HITBOX_OFFSET = 20
 
-HORIZONTAL_SPEED_CONST = 6
-SPEED_CONST = 7
+HORIZONTAL_SPEED_CONST = 8
+SPEED_CONST = 9
 
 HORIZONTAL_SPEED = HORIZONTAL_SPEED_CONST
 SPEED = SPEED_CONST
@@ -253,6 +255,7 @@ collision_detected = False
 boost_mode = 0
 pause = False
 difficulty = 0.1
+pygame.mixer.music.play()
 
 while running:
     # Event handling
@@ -275,7 +278,7 @@ while running:
     spawn_timer += clock.get_rawtime()
     if spawn_timer >= spawn_interval:
         for i in range(spawn_quantity):
-            current_obstacle_x = generate_lane_x(random.randint(0, NUMBER_OF_LANES - 1)) + OBSTACLE_SIZE // 2
+            current_obstacle_x = generate_lane_x(random.randint(0, NUMBER_OF_LANES - 1)) + lane_width // 2 - OBSTACLE_SIZE // 2
             obstacle = Obstacle("./assets/obstacle1.png", current_obstacle_x, -OBSTACLE_SIZE, OBSTACLE_SIZE)
             obstacles.append(obstacle)
         
